@@ -207,11 +207,13 @@ var splashyfish = (function (canvas) {
 			//Draw score
 			drawText(score, width - 32, 32, "#ffffff");
 
-			//Draw hitboxes
-			drawCircle(fish.x, fishTop, 2, "yellow");
-			drawCircle(fish.x, fishBottom, 2, "cyan");
-			drawCircle(fishLeft, fish.y, 2, "pink");
-			drawCircle(fishRight, fish.y, 2, "lime");
+			if(hacks) {
+				//Draw hitboxes
+				drawCircle(fish.x, fishTop, 2, "yellow");
+				drawCircle(fish.x, fishBottom, 2, "cyan");
+				drawCircle(fishLeft, fish.y, 2, "pink");
+				drawCircle(fishRight, fish.y, 2, "lime");
+			}
 
 			if (!hacks) {
 				//Move fish
