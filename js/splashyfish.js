@@ -66,10 +66,12 @@ var splashyfish = (function (canvas) {
 	}
 
 	function drawCircle(x, y, radius, color) {
+		var beforeFillStyle = context.fillStyle;
 		context.beginPath();
 		context.arc(x, y, radius, 0, 2 * Math.PI, false);
 		context.fillStyle = color;
 		context.fill();
+		context.fillStyle = beforeFillStyle;
 	}
 
 	function playSound(soundFile, position) {
