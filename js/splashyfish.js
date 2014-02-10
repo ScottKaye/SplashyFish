@@ -7,17 +7,18 @@ var splashyfish = (function (canvas) {
 	var context = canvas.getContext("2d");
 	var width = canvas.width;
 	var height = canvas.height;
-	var fishSize = height / 50;
-	var wallWidth = fishSize;
+	var wallWidth = 50;
 
 	var playing = true;
 	var hacks = false;
 	var mouseX, mouseY;
 	var totalWalls = 0;
-	var spaceSize = fishSize * 16;
+	var spaceSize = 200;
 	var wallFrequency = 1000;
 	var score = 0;
 	var scoreTimeout;
+	var fishImage;
+	var wingPosition = true;
 
 	var fish = {
 		"x": width / 4,
@@ -45,7 +46,21 @@ var splashyfish = (function (canvas) {
 		}, wallFrequency);
 	}
 
-	newWall();
+	//Wing flaps
+	setInterval(function() {
+		wingPosition = !wingPosition;
+	}, 100);
+
+	function play() {
+		playing = true;
+		newWall();
+		fishImage = document.createElement("img");
+		fishImage.src = "img/sprites.png";
+		fishImage.style.display = "none";
+		document.body.appendChild(fishImage);
+	}
+
+	play();
 
 	canvas.addEventListener("mousedown", function (mouse) {
 		if (mouse.which === 1) {
@@ -71,7 +86,7 @@ var splashyfish = (function (canvas) {
 	}, false);
 
 	function jump() {
-		fish.yVel = fishSize;
+		fish.yVel = 8;
 		playSound("jump.mp3", 0);
 
 		hacks = false;
@@ -109,6 +124,15 @@ var splashyfish = (function (canvas) {
 		context.fillStyle = beforeFillStyle;
 	}
 
+	function drawFish(x, y) {
+		x -= 16;
+		y -= 16;
+
+		var offset = wingPosition ? 0 : 240;
+
+		context.drawImage(fishImage, offset, 0, 240, 240, x, y, 32, 32);
+	}
+
 	function playSound(soundFile, position) {
 		var audio = document.createElement("audio");
 		var source = document.createElement("source");
@@ -131,13 +155,14 @@ var splashyfish = (function (canvas) {
 			context.fillRect(0, 0, width, height);
 
 			//Draw fish
-			drawCircle(fish.x, fish.y, fishSize, "#fff");
+			//drawCircle(fish.x, fish.y, 16, "#fff");
+			drawFish(fish.x, fish.y);
 
 			//Find fish edge locations
-			var fishTop = fish.y - fishSize;
-			var fishBottom = fish.y + fishSize;
-			var fishRight = fish.x + fishSize;
-			var fishLeft = fish.x - fishSize;
+			var fishTop = fish.y - 16;
+			var fishBottom = fish.y + 16;
+			var fishRight = fish.x + 16;
+			var fishLeft = fish.x - 16;
 
 			//Draw walls
 			walls.forEach(function (wall) {
