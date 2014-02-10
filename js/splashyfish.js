@@ -45,14 +45,19 @@ var splashyfish = (function (canvas) {
 
 	canvas.addEventListener("mousedown", function (mouse) {
 		if (mouse.which === 1) {
-			//Jump
-			fish.yVel = fishSize;
-			playSound("jump.mp3", 0);
-
-			hacks = false;
+			jump();
 		} else if (mouse.which === 2) {
 			playing = true;
 			hacks = true;
+		}
+	}, false);
+
+	window.addEventListener("keydown", function (key) {
+		if (key.which === 32) {
+			jump();
+		}
+		if(key.which === 13) {
+			restart();
 		}
 	}, false);
 
@@ -60,6 +65,23 @@ var splashyfish = (function (canvas) {
 		mouseX = mouse.x;
 		mouseY = mouse.y;
 	}, false);
+
+	function jump() {
+		fish.yVel = fishSize;
+		playSound("jump.mp3", 0);
+
+		hacks = false;
+	}
+
+	function restart() {
+		walls = [];
+		score = 0;
+		playing = true;
+		fish.yVel = 0;
+		fish.y = height / 2;
+
+		hacks = false;
+	}
 
 	function getRand(min, max) {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -127,7 +149,7 @@ var splashyfish = (function (canvas) {
 				//Check collisions
 				if (fishRight >= wall.x && fishLeft < wall.x + wallWidth) {
 					clearTimeout(scoreTimeout);
-					scoreTimeout = setTimeout(function() {
+					scoreTimeout = setTimeout(function () {
 						score++;
 					}, 500);
 					if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
