@@ -1,4 +1,4 @@
-var splashyfish = (function (canvas) {
+var splashyfish = (function(canvas) {
 	var canvas = document.getElementById(canvas);
 
 	canvas.width = window.innerWidth;
@@ -17,13 +17,14 @@ var splashyfish = (function (canvas) {
 	var wallFrequency = 1000;
 	var score = 0;
 	var scoreTimeout;
-	var fishImage;
-	var wingPosition = true;
 
 	var fish = {
 		"x": width / 4,
 		"y": height / 2,
-		"yVel": 0
+		"yVel": 0,
+		"image": null,
+		"wings": true,
+		"speed": 5
 	};
 
 	function wall(length) {
@@ -33,9 +34,13 @@ var splashyfish = (function (canvas) {
 	}
 
 	var walls = [];
+	var points = [{
+		"x": fish.x,
+		"y": fish.y
+	}];
 
 	function newWall() {
-		setTimeout(function () {
+		setTimeout(function() {
 			if (playing) {
 				var wallHeight = getRand(0, height - spaceSize);
 
@@ -48,30 +53,42 @@ var splashyfish = (function (canvas) {
 
 	//Wing flaps
 	setInterval(function() {
-		wingPosition = !wingPosition;
+		fish.wings = !fish.wings;
 	}, 100);
+
+	//Save fish path
+	setInterval(function() {
+		points.push({
+			"x": fish.x,
+			"y": fish.y
+		});
+	}, 25);
 
 	function play() {
 		playing = true;
 		newWall();
-		fishImage = document.createElement("img");
-		fishImage.src = "img/sprites.png";
-		fishImage.style.display = "none";
-		document.body.appendChild(fishImage);
+		fish.image = document.createElement("img");
+		fish.image.src = "img/sprites.png";
+		fish.image.style.display = "none";
+		document.body.appendChild(fish.image);
 	}
 
 	play();
 
-	canvas.addEventListener("mousedown", function (mouse) {
+	canvas.addEventListener("mousedown", function(mouse) {
 		if (mouse.which === 1) {
 			jump();
 		} else if (mouse.which === 2) {
+			points = [{
+				"x": fish.x,
+				"y": fish.y
+			}];
 			playing = true;
 			hacks = true;
 		}
 	}, false);
 
-	window.addEventListener("keydown", function (key) {
+	window.addEventListener("keydown", function(key) {
 		if (key.which === 32) {
 			jump();
 		}
@@ -80,16 +97,20 @@ var splashyfish = (function (canvas) {
 		}
 	}, false);
 
-	canvas.addEventListener("mousemove", function (mouse) {
+	canvas.addEventListener("mousemove", function(mouse) {
 		mouseX = mouse.x;
 		mouseY = mouse.y;
 	}, false);
 
 	function jump() {
-		fish.yVel = 8;
-		playSound("jump.mp3", 0);
+		if (playing) {
+			fish.angle = fish.yVel;
+			fish.yVel = 8;
 
-		hacks = false;
+			playSound("jump.mp3");
+
+			hacks = false;
+		}
 	}
 
 	function restart() {
@@ -99,6 +120,10 @@ var splashyfish = (function (canvas) {
 		fish.yVel = 0;
 		fish.y = height / 2;
 		fish.x = width / 4;
+		points = [{
+			"x": fish.x,
+			"y": fish.y
+		}];
 
 		hacks = false;
 	}
@@ -119,21 +144,25 @@ var splashyfish = (function (canvas) {
 	function drawText(text, x, y, color) {
 		var beforeFillStyle = context.fillStyle;
 		context.fillStyle = color;
-		context.font = "16px 'Press Start 2P'";
+		context.font = "24px 'Press Start 2P'";
 		context.fillText(text, x, y);
 		context.fillStyle = beforeFillStyle;
 	}
 
 	function drawFish(x, y) {
-		x -= 16;
-		y -= 16;
 
-		var offset = wingPosition ? 0 : 240;
+		var angle = fish.yVel * 2;
 
-		context.drawImage(fishImage, offset, 0, 240, 240, x, y, 32, 32);
+		var wingOffset = fish.wings ? 0 : 240;
+
+		context.translate(x, y);
+		context.rotate(angle * Math.PI / 180);
+		context.drawImage(fish.image, wingOffset, 0, 240, 240, -16, -16, 32, 32);
+		context.rotate(-angle * Math.PI / 180);
+		context.translate(-x, -y);
 	}
 
-	function playSound(soundFile, position) {
+	function playSound(soundFile) {
 		var audio = document.createElement("audio");
 		var source = document.createElement("source");
 		source.type = "audio/mpeg";
@@ -142,7 +171,7 @@ var splashyfish = (function (canvas) {
 		document.body.appendChild(audio);
 		audio.volume = 0.5;
 		audio.play();
-		setTimeout(function () {
+		setTimeout(function() {
 			document.body.removeChild(audio);
 		}, 800);
 	}
@@ -164,50 +193,72 @@ var splashyfish = (function (canvas) {
 			var fishRight = fish.x + 16;
 			var fishLeft = fish.x - 16;
 
-			//Draw walls
-			walls.forEach(function (wall) {
-				var y;
-
-				//Determine wall location
-				switch (wall.direction) {
-					default:
-				case "up":
-					y = height - wall.length;
-					context.fillStyle = "red";
-					break;
-				case "down":
-					y = 0;
-					context.fillStyle = "blue";
-					break;
-				}
-
-				//Draw wall
-				context.fillRect(wall.x, y, wallWidth, wall.length);
-
-				//Check collisions
-				if (fishRight >= wall.x && fishLeft < wall.x + wallWidth) {
-
-					//Update score
-					clearTimeout(scoreTimeout);
-					scoreTimeout = setTimeout(function () {
-						score++;
-					}, 100);
-
-					//Determine collisions
-					if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
-						//Dead
-						playing = false;
+			//Draw fish path
+			if (hacks) {
+				context.beginPath();
+				context.moveTo(points[0].x, points[0].y);
+				for (i = 0; i < points.length - 2; i++) {
+					if (points[i].x <= -10) {
+						points.splice(points.indexOf(points[i]), 1);
+					} else {
+						var xc = (points[i].x + points[i + 1].x) / 2;
+						var yc = (points[i].y + points[i + 1].y) / 2;
+						context.lineTo(points[i].x, points[i].y, xc, yc);
+						points[i].x -= fish.speed;
 					}
 				}
+				context.lineWidth = 3;
+				context.strokeStyle = '#ff0000';
+				context.stroke();
+			}
 
-				//Move wall
-				wall.x -= 5;
+			//Draw walls
+			walls.forEach(function(wall) {
+				//Only process walls that are on screen, but keep the old walls
+				if (wall.x >= 0 - wallWidth) {
+					var y;
+
+					//Determine wall location
+					switch (wall.direction) {
+						default:
+						case "up":
+							y = height - wall.length;
+							context.fillStyle = "red";
+							break;
+						case "down":
+							y = 0;
+							context.fillStyle = "blue";
+							break;
+					}
+
+					//Draw wall
+					context.fillRect(wall.x, y, wallWidth, wall.length);
+
+					//Check collisions
+					if (fishRight >= wall.x && fishLeft < wall.x + wallWidth) {
+
+						//Update score
+						clearTimeout(scoreTimeout);
+						scoreTimeout = setTimeout(function() {
+							score++;
+						}, 100);
+
+						//Determine collisions
+						if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
+							//Dead
+							playing = false;
+						}
+					}
+
+					//Move wall
+					wall.x -= fish.speed;
+				}
 			});
 
 			//Draw score
-			drawText(score, width - 32, 32, "#ffffff");
+			drawText(score, width - 64, 64, "#ffffff");
 
-			if(hacks) {
+			if (hacks) {
 				//Draw hitboxes
 				drawCircle(fish.x, fishTop, 2, "yellow");
 				drawCircle(fish.x, fishBottom, 2, "cyan");
