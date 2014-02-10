@@ -33,15 +33,19 @@ var splashyfish = (function (canvas) {
 
 	var walls = [];
 
-	setInterval(function () {
-		if (playing) {
+	function newWall() {
+		setTimeout(function () {
+			if (playing) {
+				var wallHeight = getRand(0, height - spaceSize);
 
-			var wallHeight = getRand(0, height - spaceSize);
+				walls.push(new wall(wallHeight));
+				walls.push(new wall(height - wallHeight - spaceSize));
+			}
+			newWall();
+		}, wallFrequency);
+	}
 
-			walls.push(new wall(wallHeight));
-			walls.push(new wall(height - wallHeight - spaceSize));
-		}
-	}, wallFrequency);
+	newWall();
 
 	canvas.addEventListener("mousedown", function (mouse) {
 		if (mouse.which === 1) {
@@ -56,7 +60,7 @@ var splashyfish = (function (canvas) {
 		if (key.which === 32) {
 			jump();
 		}
-		if(key.which === 13) {
+		if (key.which === 13) {
 			restart();
 		}
 	}, false);
@@ -79,6 +83,7 @@ var splashyfish = (function (canvas) {
 		playing = true;
 		fish.yVel = 0;
 		fish.y = height / 2;
+		fish.x = width / 4;
 
 		hacks = false;
 	}
@@ -96,6 +101,14 @@ var splashyfish = (function (canvas) {
 		context.fillStyle = beforeFillStyle;
 	}
 
+	function drawText(text, x, y, color) {
+		var beforeFillStyle = context.fillStyle;
+		context.fillStyle = color;
+		context.font = "16px 'Press Start 2P'";
+		context.fillText(text, x, y);
+		context.fillStyle = beforeFillStyle;
+	}
+
 	function playSound(soundFile, position) {
 		var audio = document.createElement("audio");
 		var source = document.createElement("source");
@@ -108,7 +121,7 @@ var splashyfish = (function (canvas) {
 		setTimeout(function () {
 			document.body.removeChild(audio);
 		}, 800);
-	};
+	}
 
 	(function animateLoop() {
 		requestAnimationFrame(animateLoop);
@@ -148,10 +161,14 @@ var splashyfish = (function (canvas) {
 
 				//Check collisions
 				if (fishRight >= wall.x && fishLeft < wall.x + wallWidth) {
+
+					//Update score
 					clearTimeout(scoreTimeout);
 					scoreTimeout = setTimeout(function () {
 						score++;
-					}, 500);
+					}, 100);
+
+					//Determine collisions
 					if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
 						//Dead
 						playing = false;
@@ -162,11 +179,14 @@ var splashyfish = (function (canvas) {
 				wall.x -= 5;
 			});
 
+			//Draw score
+			drawText(score, width - 32, 32, "#ffffff");
+
 			//Draw hitboxes
-			drawCircle(fish.x, fishTop, 3, "yellow");
-			drawCircle(fish.x, fishBottom, 3, "cyan");
-			drawCircle(fishLeft, fish.y, 3, "pink");
-			drawCircle(fishRight, fish.y, 3, "lime");
+			drawCircle(fish.x, fishTop, 2, "yellow");
+			drawCircle(fish.x, fishBottom, 2, "cyan");
+			drawCircle(fishLeft, fish.y, 2, "pink");
+			drawCircle(fishRight, fish.y, 2, "lime");
 
 			if (!hacks) {
 				//Move fish
