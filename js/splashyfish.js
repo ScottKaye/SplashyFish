@@ -1,8 +1,8 @@
 var splashyfish = (function (canvas) {
 	var canvas = document.getElementById(canvas);
 
-	canvas.width = document.documentElement.clientWidth - 5;
-	canvas.height = document.documentElement.clientHeight - 5;
+	canvas.width = window.innerWidth;
+	canvas.height = 400;
 
 	var context = canvas.getContext("2d");
 	var width = canvas.width;
@@ -130,7 +130,6 @@ var splashyfish = (function (canvas) {
 					}, 500);
 					if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
 						//Dead
-						alert(score);
 						playing = false;
 					}
 				}
@@ -148,7 +147,7 @@ var splashyfish = (function (canvas) {
 			if (!hacks) {
 				//Move fish
 				fish.y += fish.yVel;
-				fish.yVel = fish.yVel / 0.981 - 1;
+				fish.yVel = fish.yVel / 0.981 - 0.5;
 			} else {
 				fish.x = mouseX;
 				fish.y = mouseY;
