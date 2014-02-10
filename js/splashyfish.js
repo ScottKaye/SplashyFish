@@ -180,7 +180,10 @@ var splashyfish = (function(canvas) {
 		requestAnimationFrame(animateLoop);
 
 		if (playing) {
-			context.fillStyle = "black";
+			var sea = context.createLinearGradient(0, 0, 0, height);
+			sea.addColorStop(0, "#2980b9");
+			sea.addColorStop(1, "#34495e");
+			context.fillStyle = sea;
 			context.fillRect(0, 0, width, height);
 
 			//Draw fish
@@ -223,11 +226,11 @@ var splashyfish = (function(canvas) {
 						default:
 						case "up":
 							y = height - wall.length;
-							context.fillStyle = "red";
+							context.fillStyle = "#27ae60";
 							break;
 						case "down":
 							y = 0;
-							context.fillStyle = "blue";
+							context.fillStyle = "#2ecc71";
 							break;
 					}
 
