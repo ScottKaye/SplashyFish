@@ -1,4 +1,4 @@
-var splashyfish = (function(canvas) {
+var splashyfish = (function (canvas) {
 	var canvas = document.getElementById(canvas);
 
 	canvas.width = document.documentElement.clientWidth - 5;
@@ -7,15 +7,17 @@ var splashyfish = (function(canvas) {
 	var context = canvas.getContext("2d");
 	var width = canvas.width;
 	var height = canvas.height;
-	var fishSize = height / 20;
+	var fishSize = height / 50;
 	var wallWidth = fishSize;
 
 	var playing = true;
 	var hacks = false;
 	var mouseX, mouseY;
 	var totalWalls = 0;
-	var spaceSize = fishSize * 8;
+	var spaceSize = fishSize * 16;
 	var wallFrequency = 1000;
+	var score = 0;
+	var scoreTimeout;
 
 	var fish = {
 		"x": width / 4,
@@ -31,7 +33,7 @@ var splashyfish = (function(canvas) {
 
 	var walls = [];
 
-	setInterval(function() {
+	setInterval(function () {
 		if (playing) {
 
 			var wallHeight = getRand(0, height - spaceSize);
@@ -41,10 +43,10 @@ var splashyfish = (function(canvas) {
 		}
 	}, wallFrequency);
 
-	canvas.addEventListener("mousedown", function(mouse) {
+	canvas.addEventListener("mousedown", function (mouse) {
 		if (mouse.which === 1) {
 			//Jump
-			fish.yVel = fishSize / 3;
+			fish.yVel = fishSize;
 			playSound("jump.mp3", 0);
 
 			hacks = false;
@@ -54,7 +56,7 @@ var splashyfish = (function(canvas) {
 		}
 	}, false);
 
-	canvas.addEventListener("mousemove", function(mouse) {
+	canvas.addEventListener("mousemove", function (mouse) {
 		mouseX = mouse.x;
 		mouseY = mouse.y;
 	}, false);
@@ -79,7 +81,7 @@ var splashyfish = (function(canvas) {
 		document.body.appendChild(audio);
 		audio.volume = 0.5;
 		audio.play();
-		setTimeout(function() {
+		setTimeout(function () {
 			document.body.removeChild(audio);
 		}, 800);
 	};
@@ -101,20 +103,20 @@ var splashyfish = (function(canvas) {
 			var fishLeft = fish.x - fishSize;
 
 			//Draw walls
-			walls.forEach(function(wall) {
+			walls.forEach(function (wall) {
 				var y;
 
 				//Determine wall location
 				switch (wall.direction) {
 					default:
-					case "up":
-						y = height - wall.length;
-						context.fillStyle = "red";
-						break;
-					case "down":
-						y = 0;
-						context.fillStyle = "blue";
-						break;
+				case "up":
+					y = height - wall.length;
+					context.fillStyle = "red";
+					break;
+				case "down":
+					y = 0;
+					context.fillStyle = "blue";
+					break;
 				}
 
 				//Draw wall
@@ -122,7 +124,13 @@ var splashyfish = (function(canvas) {
 
 				//Check collisions
 				if (fishRight >= wall.x && fishLeft < wall.x + wallWidth) {
+					clearTimeout(scoreTimeout);
+					scoreTimeout = setTimeout(function() {
+						score++;
+					}, 500);
 					if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
+						//Dead
+						alert(score);
 						playing = false;
 					}
 				}
