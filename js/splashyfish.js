@@ -15,14 +15,16 @@ var splashyfish = (function(canvas) {
 	var score = 0;
 	var scoreTimeout;
 	var enabled = false;
-	var dead = false;
+
 	var fish = {
 		"x": width / 4,
 		"y": height / 2,
 		"yVel": 0,
 		"image": null,
 		"wings": true,
-		"speed": 5
+		"speed": 5,
+		"angle": 0,
+		"dead": false
 	};
 
 	function wall(length) {
@@ -46,10 +48,17 @@ var splashyfish = (function(canvas) {
 			newWall();
 		}, wallFrequency);
 	}
+
 	//Wing flaps
 	setInterval(function() {
-		fish.wings = !fish.wings;
+		if(!fish.dead) {
+			fish.wings = !fish.wings;
+		}
+		else {
+			fish.wings = true;
+		}
 	}, 100);
+
 	//Save fish path
 	setInterval(function() {
 		if (hacks) {
@@ -60,7 +69,6 @@ var splashyfish = (function(canvas) {
 		}
 	}, 25);
 
-
 	function start() {
 		playing = true;
 	}
@@ -70,7 +78,9 @@ var splashyfish = (function(canvas) {
 		fish.image = document.createElement("img");
 		fish.image.src = "img/sprites.png";
 	}
+
 	play();
+
 	canvas.addEventListener("mousedown", function(mouse) {
 		if (mouse.which === 1) {
 			jump();
@@ -83,6 +93,7 @@ var splashyfish = (function(canvas) {
 			hacks = true;
 		}
 	}, false);
+
 	window.addEventListener("keydown", function(key) {
 		if (key.which === 32) {
 			jump();
@@ -91,13 +102,14 @@ var splashyfish = (function(canvas) {
 			restart();
 		}
 	}, false);
+
 	canvas.addEventListener("mousemove", function(mouse) {
 		mouseX = mouse.x;
 		mouseY = mouse.y;
 	}, false);
 
 	function jump() {
-		if (playing) {
+		if (playing && !fish.dead) {
 			enabled = true;
 			fish.yVel = 8;
 			playSound("jump.mp3");
@@ -109,9 +121,12 @@ var splashyfish = (function(canvas) {
 		walls = [];
 		score = 0;
 		playing = true;
+		fish.dead = false;
+		enabled = true;
 		fish.yVel = 0;
 		fish.y = height / 2;
 		fish.x = width / 4;
+		fish.angle = 0;
 		points = [{
 			"x": fish.x,
 			"y": fish.y
@@ -141,12 +156,15 @@ var splashyfish = (function(canvas) {
 	}
 
 	function drawFish(x, y) {
-		var angle = fish.yVel * 2;
+		if(!fish.dead) {
+			fish.angle = fish.yVel * 2;
+		}
+
 		var wingOffset = fish.wings ? 0 : 240;
 		context.translate(x, y);
-		context.rotate(angle * Math.PI / 180);
+		context.rotate(fish.angle * Math.PI / 180);
 		context.drawImage(fish.image, wingOffset, 0, 240, 240, -16, -16, 32, 32);
-		context.rotate(-angle * Math.PI / 180);
+		context.rotate(-fish.angle * Math.PI / 180);
 		context.translate(-x, -y);
 	}
 
@@ -159,11 +177,10 @@ var splashyfish = (function(canvas) {
 	}
 
 	function die() {
-		fish.yVel = 0;
-		enabled = false;
-
-
+		fish.yVel = -1;
+		fish.dead = true;
 	}
+
 	(function animateLoop() {
 		requestAnimationFrame(animateLoop);
 		if (playing) {
@@ -190,7 +207,7 @@ var splashyfish = (function(canvas) {
 						var xc = (points[i].x + points[i + 1].x) / 2;
 						var yc = (points[i].y + points[i + 1].y) / 2;
 						context.lineTo(points[i].x, points[i].y, xc, yc);
-						points[i].x -= fish.speed;
+						if(enabled)	points[i].x -= fish.speed;
 					}
 				}
 				context.lineWidth = 3;
@@ -224,12 +241,12 @@ var splashyfish = (function(canvas) {
 						}, 100);
 						//Determine collisions
 						if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
-							//Dead
+							//Die
 							die();
 						}
 					}
 					//Move wall
-					if (!dead) wall.x -= fish.speed;
+					if (!fish.dead) wall.x -= fish.speed;
 				}
 			});
 			//Draw score
@@ -243,7 +260,7 @@ var splashyfish = (function(canvas) {
 			}
 			if (!hacks) {
 				//Move fish
-				if (enabled || dead) {
+				if (enabled || fish.dead) {
 					fish.y += fish.yVel;
 					fish.yVel = fish.yVel / 0.981 - 0.5;
 				} else {
@@ -254,10 +271,18 @@ var splashyfish = (function(canvas) {
 				fish.x = mouseX;
 				fish.y = mouseY;
 			}
+
 			//If the fish leaves screen
 			if (fishTop <= 0 || fishBottom >= height) {
 				die();
 			}
+
+			if(fishTop <= 0 && fish.dead) {
+				fish.y = 16;
+				fish.yVel = 0;
+				fish.angle = 180;
+			}
+
 		}
 	})();
 });
