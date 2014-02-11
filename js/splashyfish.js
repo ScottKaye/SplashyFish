@@ -207,7 +207,7 @@ var splashyfish = (function(canvas) {
 						var xc = (points[i].x + points[i + 1].x) / 2;
 						var yc = (points[i].y + points[i + 1].y) / 2;
 						context.lineTo(points[i].x, points[i].y, xc, yc);
-						if(enabled)	points[i].x -= fish.speed;
+						if(enabled && !fish.dead) points[i].x -= fish.speed;
 					}
 				}
 				context.lineWidth = 3;
@@ -237,7 +237,7 @@ var splashyfish = (function(canvas) {
 						//Update score
 						clearTimeout(scoreTimeout);
 						scoreTimeout = setTimeout(function() {
-							score += 50;
+							score += 100;
 						}, 100);
 						//Determine collisions
 						if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
