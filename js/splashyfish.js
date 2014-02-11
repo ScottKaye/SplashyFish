@@ -7,7 +7,7 @@ var splashyfish = (function(canvas) {
 	var height = canvas.height;
 	var wallWidth = 50;
 	var playing = true;
-	var hacks = false;
+	var debug = false;
 	var mouseX, mouseY;
 	var totalWalls = 0;
 	var spaceSize = 200;
@@ -63,7 +63,7 @@ var splashyfish = (function(canvas) {
 
 	//Save fish path
 	setInterval(function() {
-		if (hacks) {
+		if (debug) {
 			points.push({
 				"x": fish.x,
 				"y": fish.y
@@ -88,7 +88,7 @@ var splashyfish = (function(canvas) {
 				"y": fish.y
 			}];
 			playing = true;
-			hacks = true;
+			debug = !debug;
 		}
 	}, false);
 
@@ -111,7 +111,6 @@ var splashyfish = (function(canvas) {
 			enabled = true;
 			fish.yVel = 8;
 			playSound("jump.mp3");
-			hacks = false;
 		}
 	}
 
@@ -136,7 +135,7 @@ var splashyfish = (function(canvas) {
 			"x": fish.x,
 			"y": fish.y
 		}];
-		hacks = false;
+		debug = false;
 	}
 
 	function getRand(min, max) {
@@ -194,15 +193,15 @@ var splashyfish = (function(canvas) {
 			sea.addColorStop(1, "#34495e");
 			context.fillStyle = sea;
 			context.fillRect(0, 0, width, height);
-			//Draw fish
-			drawFish(fish.x, fish.y);
+
 			//Find fish edge locations
 			var fishTop = fish.y - 16;
 			var fishBottom = fish.y + 16;
 			var fishRight = fish.x + 16;
 			var fishLeft = fish.x - 16;
+
 			//Draw fish path
-			if (hacks) {
+			if (debug) {
 				context.beginPath();
 				context.moveTo(points[0].x, points[0].y);
 				for (i = 0; i < points.length - 2; i++) {
@@ -254,6 +253,10 @@ var splashyfish = (function(canvas) {
 					if (!fish.dead) wall.x -= fish.speed;
 				}
 			});
+
+			//Draw fish
+			drawFish(fish.x, fish.y);
+
 			//Draw score
 			drawText(score, width - (score.toString().length * 24) - 32, 64, "#ffffff", 24);
 			
@@ -262,25 +265,22 @@ var splashyfish = (function(canvas) {
 				drawText(title, (width/2) - (title.toString().length * 24), 64, "#ffffff", 24);
 				drawText(instructions, (width/2) - 640, 240, "#ffffff", 16);
 			}
-			if (hacks) {
+
+			if (debug) {
 				//Draw hitboxes
 				drawCircle(fish.x, fishTop, 2, "yellow");
 				drawCircle(fish.x, fishBottom, 2, "cyan");
 				drawCircle(fishLeft, fish.y, 2, "pink");
 				drawCircle(fishRight, fish.y, 2, "lime");
 			}
-			if (!hacks) {
-				//Move fish
-				if (enabled || fish.dead) {
-					fish.y += fish.yVel;
-					fish.yVel = fish.yVel / 0.981 - 0.5;
-				} else {
-					fish.y = fish.y;
-					fish.yVel = 0;
-				}
+
+			//Move fish
+			if (enabled || fish.dead) {
+				fish.y += fish.yVel;
+				fish.yVel = fish.yVel / 0.981 - 0.5;
 			} else {
-				fish.x = mouseX;
-				fish.y = mouseY;
+				fish.y = fish.y;
+				fish.yVel = 0;
 			}
 
 			//If the fish leaves screen
