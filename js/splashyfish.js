@@ -155,7 +155,7 @@ var splashyfish = (function(canvas) {
 	function drawText(text, x, y, color, fsize) {
 		var beforeFillStyle = context.fillStyle;
 		context.fillStyle = color;
-		context.font = ""+fsize+"px 'Press Start 2P'";
+		context.font = fsize+"px 'Press Start 2P'";
 		context.fillText(text, x, y);
 		context.fillStyle = beforeFillStyle;
 	}
