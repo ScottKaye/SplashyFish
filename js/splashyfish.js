@@ -15,6 +15,7 @@ var splashyfish = (function(canvas) {
 	var score = 0;
 	var scoreTimeout;
 	var enabled = false;
+	var dead = false;
 	var fish = {
 		"x": width / 4,
 		"y": height / 2,
@@ -97,7 +98,7 @@ var splashyfish = (function(canvas) {
 
 	function jump() {
 		if (playing) {
-			enabled=true;
+			enabled = true;
 			fish.yVel = 8;
 			playSound("jump.mp3");
 			hacks = false;
@@ -156,6 +157,13 @@ var splashyfish = (function(canvas) {
 			audio.play();
 		}, false);
 	}
+
+	function die() {
+		fish.yVel = 0;
+		enabled = false;
+
+
+	}
 	(function animateLoop() {
 		requestAnimationFrame(animateLoop);
 		if (playing) {
@@ -212,20 +220,20 @@ var splashyfish = (function(canvas) {
 						//Update score
 						clearTimeout(scoreTimeout);
 						scoreTimeout = setTimeout(function() {
-							score++;
+							score += 50;
 						}, 100);
 						//Determine collisions
 						if ((wall.direction === "down" && fishTop <= wall.length) || (wall.direction === "up" && fishBottom >= height - wall.length)) {
 							//Dead
-							playing = false;
+							die();
 						}
 					}
 					//Move wall
-					wall.x -= fish.speed;
+					if (!dead) wall.x -= fish.speed;
 				}
 			});
 			//Draw score
-			drawText(score, width - 64, 64, "#ffffff");
+			drawText(score, width - (score.toString().length * 24) - 32, 64, "#ffffff");
 			if (hacks) {
 				//Draw hitboxes
 				drawCircle(fish.x, fishTop, 2, "yellow");
@@ -235,7 +243,7 @@ var splashyfish = (function(canvas) {
 			}
 			if (!hacks) {
 				//Move fish
-				if (enabled) {
+				if (enabled || dead) {
 					fish.y += fish.yVel;
 					fish.yVel = fish.yVel / 0.981 - 0.5;
 				} else {
@@ -248,7 +256,7 @@ var splashyfish = (function(canvas) {
 			}
 			//If the fish leaves screen
 			if (fishTop <= 0 || fishBottom >= height) {
-				playing = false;
+				die();
 			}
 		}
 	})();
