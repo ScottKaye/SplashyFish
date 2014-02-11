@@ -15,6 +15,8 @@ var splashyfish = (function(canvas) {
 	var score = 0;
 	var scoreTimeout;
 	var enabled = false;
+	var title = "Splashy Fish!";
+	var instructions = "Click or Tap Spacebar to Dive!"
 
 	var fish = {
 		"x": width / 4,
@@ -69,10 +71,6 @@ var splashyfish = (function(canvas) {
 		}
 	}, 25);
 
-	function start() {
-		playing = true;
-	}
-
 	function play() {
 		newWall();
 		fish.image = document.createElement("img");
@@ -117,6 +115,13 @@ var splashyfish = (function(canvas) {
 		}
 	}
 
+
+	function startScreen(){
+		while (enabled===false);
+		
+	}
+
+
 	function restart() {
 		walls = [];
 		score = 0;
@@ -147,10 +152,10 @@ var splashyfish = (function(canvas) {
 		context.fillStyle = beforeFillStyle;
 	}
 
-	function drawText(text, x, y, color) {
+	function drawText(text, x, y, color, fsize) {
 		var beforeFillStyle = context.fillStyle;
 		context.fillStyle = color;
-		context.font = "24px 'Press Start 2P'";
+		context.font = ""+fsize+"px 'Press Start 2P'";
 		context.fillText(text, x, y);
 		context.fillStyle = beforeFillStyle;
 	}
@@ -250,7 +255,13 @@ var splashyfish = (function(canvas) {
 				}
 			});
 			//Draw score
-			drawText(score, width - (score.toString().length * 24) - 32, 64, "#ffffff");
+			drawText(score, width - (score.toString().length * 24) - 32, 64, "#ffffff", 24);
+			
+			if (!enabled){
+				//Show starting info
+				drawText(title, (width/2) - (title.toString().length * 24), 64, "#ffffff", 24);
+				drawText(instructions, (width/2) - 640, 240, "#ffffff", 16);
+			}
 			if (hacks) {
 				//Draw hitboxes
 				drawCircle(fish.x, fishTop, 2, "yellow");
