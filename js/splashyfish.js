@@ -58,10 +58,12 @@ var splashyfish = (function(canvas) {
 
 	//Save fish path
 	setInterval(function() {
-		points.push({
-			"x": fish.x,
-			"y": fish.y
-		});
+		if(hacks) {
+			points.push({
+				"x": fish.x,
+				"y": fish.y
+			});
+		}
 	}, 25);
 
 	function play() {
@@ -104,11 +106,8 @@ var splashyfish = (function(canvas) {
 
 	function jump() {
 		if (playing) {
-			fish.angle = fish.yVel;
 			fish.yVel = 8;
-
 			playSound("jump.mp3");
-
 			hacks = false;
 		}
 	}
@@ -163,17 +162,11 @@ var splashyfish = (function(canvas) {
 	}
 
 	function playSound(soundFile) {
-		var audio = document.createElement("audio");
-		var source = document.createElement("source");
-		source.type = "audio/mpeg";
-		source.src = "snd/" + soundFile;
-		audio.appendChild(source);
-		document.body.appendChild(audio);
-		audio.volume = 0.5;
-		audio.play();
-		setTimeout(function() {
-			document.body.removeChild(audio);
-		}, 800);
+		var file = "snd/" + soundFile;
+		var audio = new Audio(file);
+		audio.addEventListener("loadedmetadata", function() {
+			audio.play();
+		}, false);
 	}
 
 	(function animateLoop() {
@@ -216,6 +209,7 @@ var splashyfish = (function(canvas) {
 			}
 
 			//Draw walls
+			context.fillStyle = "#27ae60";
 			walls.forEach(function(wall) {
 				//Only process walls that are on screen, but keep the old walls
 				if (wall.x >= 0 - wallWidth) {
@@ -226,11 +220,9 @@ var splashyfish = (function(canvas) {
 						default:
 						case "up":
 							y = height - wall.length;
-							context.fillStyle = "#27ae60";
 							break;
 						case "down":
 							y = 0;
-							context.fillStyle = "#2ecc71";
 							break;
 					}
 
