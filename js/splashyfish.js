@@ -136,6 +136,7 @@ var splashyfish = (function(canvas) {
 			"y": fish.y
 		}];
 		debug = false;
+		clearTimeout(scoreTimeout);
 	}
 
 	function getRand(min, max) {
