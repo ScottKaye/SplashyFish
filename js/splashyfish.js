@@ -53,10 +53,9 @@ var splashyfish = (function(canvas) {
 
 	//Wing flaps
 	setInterval(function() {
-		if(!fish.dead) {
+		if (!fish.dead) {
 			fish.wings = !fish.wings;
-		}
-		else {
+		} else {
 			fish.wings = true;
 		}
 	}, 100);
@@ -115,9 +114,8 @@ var splashyfish = (function(canvas) {
 	}
 
 
-	function startScreen(){
-		while (enabled===false);
-		
+	function startScreen() {
+		while (enabled === false);
 	}
 
 
@@ -139,8 +137,14 @@ var splashyfish = (function(canvas) {
 		clearTimeout(scoreTimeout);
 	}
 
+	//Rounds result
 	function getRand(min, max) {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	//Does not round result
+	function getRand2(min, max) {
+		return (Math.random() * (max - min + 1)) + min;
 	}
 
 	function drawCircle(x, y, radius, color) {
@@ -155,13 +159,13 @@ var splashyfish = (function(canvas) {
 	function drawText(text, x, y, color, fsize) {
 		var beforeFillStyle = context.fillStyle;
 		context.fillStyle = color;
-		context.font = fsize+"px 'Press Start 2P'";
+		context.font = fsize + "px 'Press Start 2P'";
 		context.fillText(text, x, y);
 		context.fillStyle = beforeFillStyle;
 	}
 
 	function drawFish(x, y) {
-		if(!fish.dead) {
+		if (!fish.dead) {
 			fish.angle = fish.yVel * 2;
 		}
 
@@ -173,6 +177,22 @@ var splashyfish = (function(canvas) {
 		context.translate(-x, -y);
 	}
 
+	function screenShake() {
+
+		var shake_amount = 5;
+
+		var shake = setInterval(function() {
+			var moveX = getRand2(shake_amount * -1, shake_amount);
+			var moveY = getRand2(shake_amount * -1, shake_amount);
+			context.translate(moveX, moveY);
+		}, 20);
+
+		setTimeout(function() {
+			clearInterval(shake);
+			context.setTransform(1, 0, 0, 1, 0, 0);
+		}, 500);
+	}
+
 	function playSound(soundFile) {
 		var file = "snd/" + soundFile;
 		var audio = new Audio(file);
@@ -182,8 +202,11 @@ var splashyfish = (function(canvas) {
 	}
 
 	function die() {
-		fish.yVel = -1;
-		fish.dead = true;
+		if (!fish.dead) {
+			screenShake();
+			fish.yVel = -1;
+			fish.dead = true;
+		}
 	}
 
 	(function animateLoop() {
@@ -212,7 +235,7 @@ var splashyfish = (function(canvas) {
 						var xc = (points[i].x + points[i + 1].x) / 2;
 						var yc = (points[i].y + points[i + 1].y) / 2;
 						context.lineTo(points[i].x, points[i].y, xc, yc);
-						if(enabled && !fish.dead) points[i].x -= fish.speed;
+						if (enabled && !fish.dead) points[i].x -= fish.speed;
 					}
 				}
 				context.lineWidth = 3;
@@ -260,11 +283,11 @@ var splashyfish = (function(canvas) {
 
 			//Draw score
 			drawText(score, width - (score.toString().length * 24) - 32, 64, "#ffffff", 24);
-			
-			if (!enabled){
+
+			if (!enabled) {
 				//Show starting info
-				drawText(title, (width/2) - (title.toString().length * 24), 64, "#ffffff", 24);
-				drawText(instructions, (width/2) - 640, 240, "#ffffff", 16);
+				drawText(title, (width / 2) - (title.toString().length * 24), 64, "#ffffff", 24);
+				drawText(instructions, (width / 2) - 640, 240, "#ffffff", 16);
 			}
 
 			if (debug) {
@@ -289,7 +312,7 @@ var splashyfish = (function(canvas) {
 				die();
 			}
 
-			if(fishTop <= 0 && fish.dead) {
+			if (fishTop <= 0 && fish.dead) {
 				fish.y = 16;
 				fish.yVel = 0;
 				fish.angle = 180;
